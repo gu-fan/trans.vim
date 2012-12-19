@@ -8,11 +8,13 @@
 "=============================================
 let s:cpo_save = &cpo
 set cpo-=C
-
 let s:path = expand('<sfile>:p:h').'/'
 let s:py_trans = s:path."trans/trans.py"
 let s:BING_TRANSLATE_API = "http://api.bing.net/json.aspx"
-let s:bing_trans_api = "https://api.datamarket.azure.com/Bing/MicrosoftTranslator/v1/"
+" api.microsofttranslator.com/v2/ajax.svc/Translate?appid=TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*&Text=Hello&To=zh-CN
+"bJdSABqAVp/JQ0eA5jlMXmc7hqOy4dPye1Rga1GF6yA=
+let s:bing_trans_url = "https://api.microsofttranslator.com/v2/ajax.svc/Translate"
+" let s:bing_trans_url = "https://api.datamarket.azure.com/Bing/MicrosoftTranslator/v1/"
 function! s:py_core_load() "{{{
     " if exists("s:py_core_loaded")
     "     return
@@ -40,11 +42,16 @@ fun! trans#init() "{{{
     else
         let g:trans_has_python = 0
     endif "}}}
+    if g:trans_has_python
+        exe s:py "from vim import eval as veval"
+        exe s:py "from vim import command as vcmd"
+    endif
+
     call trans#default("g:trans_default_to" , 'zh-CN'  )
     call trans#default("g:trans_default_from"   , 'en'  )
     call trans#default("g:trans_engine"   , 'google'  )
     call trans#default("g:trans_bing_user"   , 'test@test.com'  )
-    call trans#default("g:trans_bing_api"   , 'bJdSABqAVp/JQ0eA5jlMXmc7hqOy4dPye1Rga1GF6yA='  )
+    call trans#default("g:trans_bing_api"   , 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'  )
 endfun "}}}
 
 function! trans#google(word, from, to) " "{{{
@@ -59,16 +66,19 @@ endfunction "}}}
 
 function! trans#bing(string,from,to) "{{{
     " We could not use the basic api login anymore!!
-    let l:result_json = webapi#http#get(
-        \s:bing_trans_api,{
-        \"Text" : '%27'.webapi#http#encodeURI(a:string).'%27',
-        \"From" : a:from,
-        \"format" : 'json',
-        \"appId" : g:trans_bing_api,
-        \"To" : '%27'.a:to.'%27'})
-    let l:traslate_result = webapi#xml#parse(l:result_json.content)
+    if g:trans_has_python
+        exec s:py 'vcmd("return ''%s''" % trans_bing(veval("a:word"), veval("a:from"),veval("a:to")))'
+    else
+        let l:result_json = webapi#http#get(
+            \s:bing_trans_url,{
+            \"Text" : webapi#http#encodeURI(a:string),
+            \"From" : a:from,
+            \"appId" : g:trans_bing_api,
+            \"To" : a:to})
+        let l:traslate_result = l:result_json.content
     "let l:traslate_result = webapi#json#decode(l:result_json.content)
-    return l:traslate_result
+        return l:traslate_result
+    endif
 endfunction "}}}
 
 fun! s:get_visual() "{{{
