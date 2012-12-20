@@ -120,8 +120,8 @@ function! trans#bing(word,from,to) "{{{
             if result_obj.content =~ '"'
                 let result_obj.content = matchstr(result_obj.content,'"\zs.*\ze"')
             endif
-            if result_obj.content =~ '='
-                let result_str = split(result_obj.content,'=')[1]
+            if result_obj.content =~ ' = '
+                let result_str = split(result_obj.content,' = ')[1]
             else
                 let result_str = result_obj.content
             endif
