@@ -31,26 +31,24 @@ endfun"}}}
 fun! trans#init() "{{{
     call trans#default("g:trans_default_lang" , 'zh-CN'  )
     call trans#default("g:trans_engine" , 'google'  )
+    call trans#default("g:trans_google_url" , 'http://translate.google.com/translate_a/t')
     call trans#default("g:trans_bing_appid" , 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'  )
     call trans#default("g:trans_bing_url" , 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'  )
-    call trans#default("g:trans_google_url" , 'http://translate.google.com/translate_a/t')
     call trans#default("g:trans_header_agent" , 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5')
     call trans#default("g:trans_set_reg" , 1)
     call trans#default("g:trans_echo" , 1)
 
     if has("python") "{{{
-        call trans#default("g:trans_has_python"     , 2                )
+        call trans#default("g:trans_has_python", 2)
         let s:py="py"
         call s:py_core_load()
     elseif has("python3")
-        call trans#default("g:trans_has_python"     , 3                )
+        call trans#default("g:trans_has_python", 3)
         let s:py="py3"
         call s:py_core_load()
     else
         let g:trans_has_python = 0
     endif "}}}
-    if g:trans_has_python
-    endif
 
 endfun "}}}
 
