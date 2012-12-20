@@ -42,7 +42,7 @@ Options
 -------
 
 ``g:trans_map_trans``
-    mapping for translate , default is ``<leader>tt``
+    mapping for translate , default is '<leader>tt'
 
 ``g:trans_default_lang``
     your main language, default is 'zh-CN'
