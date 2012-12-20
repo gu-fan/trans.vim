@@ -67,7 +67,7 @@ Options
     if is 1, will set the translation to reg ``@"``
     then you can use ``p`` to paste it
 
-    if is 2, will set the translation to reg ``@@``
+    if is 2, will set the translation to reg ``@+``
     then you can use ``<Ctrl-V>`` to paste it
 
     if it is 0, no reg will be set
