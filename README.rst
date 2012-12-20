@@ -1,11 +1,12 @@
+:Title: trans.vim
 :Author: Rykka
-:Github: https://github.com/Rykka/trans.vim
 :Version: 0.9
+:Github: https://github.com/Rykka/trans.vim
 :Update: 2012-12-20
 
-=============
-Translate.vim
-=============
+=========
+Trans.vim
+=========
 
 Tries to make translate words and files in vim easier (into English).
 
