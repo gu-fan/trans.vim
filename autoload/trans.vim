@@ -164,7 +164,7 @@ fun! trans#smart(word) "{{{
 endfun "}}}
 
 " Translate po file {{{1
-" msgid "shown for all"
+" msgid "shown all"
 " msgstr "全部显示"
 let s:rex_id = 'msgid "\zs[^"[:space:]].*\ze"'
 let s:rex_str = 'msgstr ""'

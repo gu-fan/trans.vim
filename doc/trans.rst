@@ -42,12 +42,12 @@ Usage
 
     if it's::
 
-        msgid "shown for all"
+        msgid "show all"
         msgstr ""
 
     it will be translate to::
 
-        msgid "shown for all"
+        msgid "show all"
         msgstr "全部显示"
 
 Options
