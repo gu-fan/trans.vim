@@ -4,21 +4,19 @@
 " Summary: Eaiser translate in vim.
 "  Author: Rykka G.F
 "  Update: 2012-12-19
-"  Credit: google from jiazhoulvke
 "=============================================
 let s:cpo_save = &cpo
 set cpo-=C
+
+" Bing
+" http://api.microsofttranslator.com/v2/ajax.svc/Translate?appid=TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*&Text=Hello&To=zh-CN
+
 let s:path = expand('<sfile>:p:h').'/'
 let s:py_trans = s:path."trans/trans.py"
-let s:BING_TRANSLATE_API = "http://api.bing.net/json.aspx"
-" api.microsofttranslator.com/v2/ajax.svc/Translate?appid=TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*&Text=Hello&To=zh-CN
-"bJdSABqAVp/JQ0eA5jlMXmc7hqOy4dPye1Rga1GF6yA=
-let s:bing_trans_url = "https://api.microsofttranslator.com/v2/ajax.svc/Translate"
-" let s:bing_trans_url = "https://api.datamarket.azure.com/Bing/MicrosoftTranslator/v1/"
 function! s:py_core_load() "{{{
-    " if exists("s:py_core_loaded")
-    "     return
-    " endif
+    if exists("s:py_core_loaded")
+        return
+    endif
     let s:py_core_loaded=1
     exec s:py."file ".s:py_trans
 endfunction "}}}
@@ -31,7 +29,16 @@ fun! trans#default(option,value) "{{{
 endfun"}}}
     
 fun! trans#init() "{{{
-        if has("python") "{{{
+    call trans#default("g:trans_default_lang" , 'zh-CN'  )
+    call trans#default("g:trans_engine" , 'google'  )
+    call trans#default("g:trans_bing_appid" , 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'  )
+    call trans#default("g:trans_bing_url" , 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'  )
+    call trans#default("g:trans_google_url" , 'http://translate.google.com/translate_a/t')
+    call trans#default("g:trans_header_agent" , 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5')
+    call trans#default("g:trans_set_reg" , 1)
+    call trans#default("g:trans_echo" , 1)
+
+    if has("python") "{{{
         call trans#default("g:trans_has_python"     , 2                )
         let s:py="py"
         call s:py_core_load()
@@ -43,41 +50,90 @@ fun! trans#init() "{{{
         let g:trans_has_python = 0
     endif "}}}
     if g:trans_has_python
-        exe s:py "from vim import eval as veval"
-        exe s:py "from vim import command as vcmd"
     endif
 
-    call trans#default("g:trans_default_to" , 'zh-CN'  )
-    call trans#default("g:trans_default_from"   , 'en'  )
-    call trans#default("g:trans_engine"   , 'google'  )
-    call trans#default("g:trans_bing_user"   , 'test@test.com'  )
-    call trans#default("g:trans_bing_api"   , 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'  )
 endfun "}}}
 
-function! trans#google(word, from, to) " "{{{
+fun! s:set_reg(str) "{{{
+    if g:trans_set_reg == 1
+        let @" = a:str
+    elseif g:trans_set_reg == 2
+        let @+ = a:str
+    endif
+endfun "}}}
+function! trans#google(word, from, to)  "{{{
     if g:trans_has_python
-        exec s:py 'vcmd("return ''%s''" % trans_google(veval("a:word"), veval("a:from"),veval("a:to")))'
+        exec s:py 'vcmd("let result_str = ''%s''" % trans_google(veval("a:word"), veval("a:from"),veval("a:to")))'
+        call s:set_reg(result_str)
+        if g:trans_echo | echo result_str | endif
+        return result_str
     else
-        echohl WarningMsg
-        echom "trans.vim: Could not translate as you have no python installed."
-        echohl Normal
+        try
+            " XXX we got a 400 Bad request with this url.
+            " curl is not working as the same as urllib2
+            let result_obj = webapi#http#get(
+                \g:trans_google_url, {
+                    \"client" : 'firefox-a',
+                    \"langpair" : a:from.'|'.a:to,
+                    \"ie" : 'UTF-8',
+                    \"oe" : ['UTF-8',webapi#http#encodeURI(a:word)],
+                \}, {
+                    \'User-Agent': g:trans_header_agent ,
+                \})
+            " NOTE: google returns a json object.
+            let po = eval(result_obj.content)
+            let result_str = ''
+            for sen in po.sentences
+                let result_str += sen.trans
+            endfor
+            call s:set_reg(result_str)
+            if g:trans_echo | echo result_str | endif
+            return result_str
+        catch /^Vim\%((\a\+)\)\=:E117/ 
+            echohl WarningMsg
+            echom "trans.vim: Could not translate as you neither have vim compiled with python nor have webapi.vim installed."
+            echom v:exception
+            echohl Normal
+        endtry
     endif
 endfunction "}}}
 
-function! trans#bing(string,from,to) "{{{
-    " We could not use the basic api login anymore!!
+function! trans#bing(word,from,to) "{{{
+    " XXX If we want to use the bing api, we should auth it and get the token,
     if g:trans_has_python
-        exec s:py 'vcmd("return ''%s''" % trans_bing(veval("a:word"), veval("a:from"),veval("a:to")))'
+        exec s:py 'vcmd("let result_str = ''%s''" % trans_bing(veval("a:word"), veval("a:from"),veval("a:to")))'
+        call s:set_reg(result_str)
+        if g:trans_echo | echo result_str | endif
+        return result_str
     else
-        let l:result_json = webapi#http#get(
-            \s:bing_trans_url,{
-            \"Text" : webapi#http#encodeURI(a:string),
-            \"From" : a:from,
-            \"appId" : g:trans_bing_api,
-            \"To" : a:to})
-        let l:traslate_result = l:result_json.content
-    "let l:traslate_result = webapi#json#decode(l:result_json.content)
-        return l:traslate_result
+        try
+            let result_obj = webapi#http#get(
+                \g:trans_bing_url, {
+                    \"Text" : a:word,
+                    \"From" : a:from,
+                    \"appId" : g:trans_bing_appid,
+                    \"To" : a:to 
+                \} ,{
+                    \'User-Agent': g:trans_header_agent ,
+                \})
+            " NOTE: bing return a string like '\uffef"xxx = xxx"'
+            if result_obj.content =~ '"'
+                let result_obj.content = matchstr(result_obj.content,'"\zs.*\ze"')
+            endif
+            if result_obj.content =~ '='
+                let result_str = split(result_obj.content,'=')[1]
+            else
+                let result_str = result_obj.content
+            endif
+            call s:set_reg(result_str)
+            if g:trans_echo | echo result_str | endif
+            return result_str
+        catch /^Vim\%((\a\+)\)\=:E117/ 
+            echohl WarningMsg
+            echom "trans.vim: Could not translate as you neither have vim compiled with python nor have webapi.vim installed."
+            echom v:exception
+            echohl Normal
+        endtry
     endif
 endfunction "}}}
 
@@ -88,17 +144,17 @@ fun! s:get_visual() "{{{
     let @@=tmp
     return sel
 endfun "}}}
-function! trans#v(from,to) "{{{
-    return trans#google(a:lan1,a:lan2,s:get_visual())
+function! trans#v() "{{{
+    return trans#smart(s:get_visual())
 endfunction "}}}
 
 fun! trans#smart(word) "{{{
     if a:word =~ '^[[:alnum:][:blank:][:punct:]]\+$'
         let from = 'en'
-        let to = g:trans_default_to
+        let to = g:trans_default_lang
     else
         let to = 'en'
-        let from = g:trans_default_to
+        let from = g:trans_default_lang
     endif
     if g:trans_engine =='google'
         return trans#google(a:word,from,to)
@@ -108,8 +164,6 @@ fun! trans#smart(word) "{{{
 endfun "}}}
 
 " Translate po file {{{1
-
-"
 " msgid "shown for all"
 " msgstr "全部显示"
 let s:rex_id = 'msgid "\zs[^"[:space:]].*\ze"'
@@ -118,7 +172,7 @@ fun! trans#msg_trans(row) "{{{
     let line = getline(a:row)
     if line =~ s:rex_id
         let word = matchstr(line, s:rex_id)
-        let trans = trans#google('en', 'zh-CN',word)
+        sil let trans = trans#smart(word)
         return trans
     else
         return ''
