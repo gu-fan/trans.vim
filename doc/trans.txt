@@ -1,0 +1,12 @@
+*trans.txt*    Easier translation in vim
+    
+
+                            Trans.vim 
+
+                             Ver:0.9                     
+                                
+==============================================================================
+ 
+
+View trans.rst (use |gf|) for details.
+
