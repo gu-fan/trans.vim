@@ -8,7 +8,7 @@
 Trans.vim
 =========
 
-Tries to make translate words and files in vim easier (into English).
+Tries to make translate words and files in vim easier (from/into English).
 
 Includes bing and google translator.
 
