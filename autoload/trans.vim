@@ -187,7 +187,7 @@ fun! trans#msg_repl(row, trans) "{{{
 endfun "}}}
 fun! trans#trans_po() "{{{
     let trans = ''
-    for row in range(20,line('$'))
+    for row in range(1,line('$'))
     " for row in range(140,160)
         let line = getline(row)
         if line =~ s:rex_str

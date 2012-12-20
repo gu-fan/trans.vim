@@ -17,7 +17,7 @@ if !hasmapto(g:trans_map_trans)
 endif
 
 command! -nargs=+ Trans cal trans#smart(<q-args>)
-command! TransPo call translate#trans_po()
+command! TransPo call trans#trans_po()
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
