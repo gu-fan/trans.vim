@@ -48,7 +48,7 @@ Options
     your main language, default is 'zh-CN'
 
 ``g:trans_engine``
-    translator engine, default is 'google'
+    translator engine, 'google' and 'bing' are valid. default is 'google'
 
 ``g:trans_google_url``
     default is 'http://translate.google.com/translate_a/t'
