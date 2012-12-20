@@ -38,6 +38,18 @@ Usage
 ``:TransPo``
     Translate po file
 
+    For po file:
+
+    if it's::
+
+        msgid "shown for all"
+        msgstr ""
+
+    it will be translate to::
+
+        msgid "shown for all"
+        msgstr "全部显示"
+
 Options
 -------
 
@@ -48,7 +60,7 @@ Options
     your main language, default is 'zh-CN'
 
 ``g:trans_engine``
-    translator engine, default is 'google'
+    translator engine, 'google' and 'bing' are valid. default is 'google'
 
 ``g:trans_google_url``
     default is 'http://translate.google.com/translate_a/t'

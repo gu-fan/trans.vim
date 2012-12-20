@@ -38,6 +38,18 @@ Usage
 ``:TransPo``
     Translate po file
 
+    For po file:
+
+    if it's::
+
+        msgid "shown for all"
+        msgstr ""
+
+    it will be translate to::
+
+        msgid "shown for all"
+        msgstr "全部显示"
+
 Options
 -------
 
