@@ -46,7 +46,7 @@ def trans_bing(word,lang_from,lang_to):
     resultstr=''
     if gtresult.getcode()==200:
         gtresultstr=gtresult.read()
-        if '=' in gtresultstr:
+        if ' = ' in gtresultstr:
             gtresultstr = re.search(r'"(.*)"',gtresultstr).group(1)
             resultstr = gtresultstr.split(' = ')[1]
         else:
