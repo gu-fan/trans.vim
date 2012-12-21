@@ -14,7 +14,7 @@ set cpo-=C
 let s:path = expand('<sfile>:p:h').'/'
 let s:py_trans = s:path."trans/trans.py"
 function! s:py_core_load() "{{{
-    if exists("s:py_core_loaded")
+    if exists("s:py_core_loaded") || !g:trans_has_python
         return
     endif
     let s:py_core_loaded=1
@@ -163,7 +163,7 @@ fun! trans#smart(word) "{{{
 endfun "}}}
 
 " Translate po file {{{1
-" msgid "shown all"
+" msgid "show all"
 " msgstr "全部显示"
 let s:rex_id = 'msgid "\zs[^"[:space:]].*\ze"'
 let s:rex_str = 'msgstr ""'
@@ -197,8 +197,4 @@ fun! trans#trans_po() "{{{
         endif
     endfor
 endfun "}}}
-
-
-
-
 

@@ -1,8 +1,8 @@
 :Title: trans.vim
 :Author: Rykka
-:Version: 0.9
+:Version: 0.92
 :Github: https://github.com/Rykka/trans.vim
-:Update: 2012-12-20
+:Update: 2012-12-21
 
 =========
 Trans.vim
@@ -35,12 +35,14 @@ Usage
 ``:Trans``
     Translate word
 
+    ``:Trans hello`` will print ``你好``
+
 ``:TransPo``
     Translate po file
 
-    For po file:
+    When in a po buffer, ``:TransPo`` will fill all empty msgstr with translated msgid.
 
-    if it's::
+    if the msg is::
 
         msgid "show all"
         msgstr ""
@@ -59,22 +61,6 @@ Options
 ``g:trans_default_lang``
     your main language, default is 'zh-CN'
 
-``g:trans_engine``
-    translator engine, 'google' and 'bing' are valid. default is 'google'
-
-``g:trans_google_url``
-    default is 'http://translate.google.com/translate_a/t'
-
-``g:trans_bing_url``
-    default is 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'
-
-``g:trans_bing_appid``
-    default is 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'
-    You can use yours if it's invalid.
-
-``g:trans_header_agent``
-    default is 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5'
-
 ``g:trans_set_reg``
     if is 1, will set the translation to reg ``@"``
     then you can use ``p`` to paste it
@@ -92,6 +78,29 @@ Options
     if it is 0, will not echo the translation.
 
     default is 1
+
+``g:trans_engine``
+    translator engine, 'google' and 'bing' are valid. default is 'google'
+
+``g:trans_google_url``
+    default is 'http://translate.google.com/translate_a/t'
+
+``g:trans_bing_url``
+    default is 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'
+
+``g:trans_bing_appid``
+    default is 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'
+    You can use yours if it's invalid.
+
+``g:trans_header_agent``
+    default is 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5'
+
+
+``g:trans_has_python``
+
+    if you want to disable python usage. set it to 0.
+
+    default is your python version.
 
 Know Issues
 -----------
