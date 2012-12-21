@@ -26,7 +26,7 @@ fun! trans#default(option,value) "{{{
         return 0
     endif
     return 1
-endfun"}}}
+endfun "}}}
     
 fun! trans#init() "{{{
     call trans#default("g:trans_default_lang" , 'zh-CN'  )
@@ -142,12 +142,12 @@ fun! s:get_visual() "{{{
     let @@=tmp
     return sel
 endfun "}}}
-function! trans#v() "{{{
+function! trans#v() range "{{{
     return trans#smart(s:get_visual())
 endfunction "}}}
 
 fun! trans#smart(word) "{{{
-    if a:word =~ '^[[:alnum:][:blank:][:punct:]]\+$'
+    if a:word =~ '^[[:alnum:][:blank:][:punct:][:cntrl:]]\+$'
         let from = 'en'
         let to = g:trans_default_lang
     else
