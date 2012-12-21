@@ -140,6 +140,7 @@ fun! s:get_visual() "{{{
     sil! norm! gvy
     let sel = @@
     let @@=tmp
+    let sel = substitute(sel,'[[:cntrl:]]',' ','g')
     return sel
 endfun "}}}
 function! trans#v() range "{{{
