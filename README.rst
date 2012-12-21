@@ -30,12 +30,16 @@ Usage
 -----
 
 ``<leader>tt``
-    translate current word or current visual selection.
+    Translate current word or current visual selection.
+    
+    and you can paste it with ``p``
 
 ``:Trans``
     Translate word
 
     ``:Trans hello`` will print ``你好``
+
+    and you can paste it with ``p``
 
 ``:TransPo``
     Translate po file
