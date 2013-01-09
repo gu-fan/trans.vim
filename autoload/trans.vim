@@ -67,23 +67,18 @@ function! trans#google(word, from, to)  "{{{
         return result_str
     else
         try
-            " XXX we got a 400 Bad request with this url.
-            " curl is not working as the same as urllib2
             let result_obj = webapi#http#get(
                 \g:trans_google_url, {
                     \"client" : 'firefox-a',
                     \"langpair" : a:from.'|'.a:to,
                     \"ie" : 'UTF-8',
-                    \"oe" : ['UTF-8',webapi#http#encodeURI(a:word)],
+                    \"oe" : 'UTF-8',
+                    \"text" : a:word,
                 \}, {
                     \'User-Agent': g:trans_header_agent ,
                 \})
-            " NOTE: google returns a json object.
-            let po = eval(result_obj.content)
-            let result_str = ''
-            for sen in po.sentences
-                let result_str += sen.trans
-            endfor
+            let po = webapi#json#decode(result_obj.content)
+            let result_str = join(map(po.sentences, 'v:val.trans'), '')
             call s:set_reg(result_str)
             if g:trans_echo | echo result_str | endif
             return result_str
