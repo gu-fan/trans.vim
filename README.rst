@@ -2,7 +2,7 @@
 :Author: Rykka
 :Version: 1.0
 :Github: https://github.com/Rykka/trans.vim
-:Update: 2012-12-21
+:Update: 2013-01-10
 
 =========
 Trans.vim
