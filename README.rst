@@ -8,12 +8,13 @@
 Trans.vim
 =========
 
-**Trans.vim** makes translation in vim easier::
+**Trans.vim** makes translation in vim easier.
+::
 
-    使得翻译在vim容易。
-    vim内で翻訳が容易になります。
-    rend la traduction dans vim facile.
-    macht die Übersetzung in vim einfacher.
+    Trans.vim使翻译在vim更容易。
+    Trans.vimはvimでの変換が容易になります。
+    Trans.vim rend la traduction dans vim facile.
+    Транс.вим чини превод на вим лакше.
     ...
 
 Installation

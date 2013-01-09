@@ -37,9 +37,9 @@ endfun "}}}
 " Microsoft translator  (need update token) "{{{1
 " URL: http://api.microsofttranslator.com/v2/ajax.svc/Translate?appid=TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*&Text=Hello&To=zh-CN
 "
-" XXX: not working
 " Bing (need auth)
-" https://api.datamarket.azure.com/Bing/MicrosoftTranslator/v1/Translate?Text=%27hello%27&To=%27zh-CHT%27&From=%27en%27
+" XXX: not working
+" URL: https://api.datamarket.azure.com/Bing/MicrosoftTranslator/v1/Translate?Text=%27hello%27&To=%27zh-CHT%27&From=%27en%27
 let g:trans_api.bing = {'url': 'http://api.microsofttranslator.com/v2/ajax.svc/Translate',
             \'type': 'oauth',
             \'oauth_url': 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/',
