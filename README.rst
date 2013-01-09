@@ -126,10 +126,11 @@ Define your own API
     " API_PARSER_FUNC is the name of the function to parse the response content
     " And you can add 'headers' key for specified headers dict
     let g:trans_api.YOUR_API = {
+        \'type': 'get',
         \'url': YOUR_API_URL,
         \'params': YOUR_API_PARAMS,
         \'query_str': API_QUERY_STR,
-        \'parser': API_PARSER_FUNC
+        \'parser': API_PARSER_FUNC,
         \}
 
     fun! API_PARSER_FUNC(content)
