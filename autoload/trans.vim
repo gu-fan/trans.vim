@@ -44,7 +44,7 @@ endfun "}}}
 
 fun! trans#set(text) "{{{
     try 
-        exe 'let @'.g:trans_set_reg.' = '.string(a:text)
+        exe 'let @'.g:trans_set_reg.' = "'.a:text.'"'
     catch /^Vim\%((\a\+)\)\=:E18/ 
         call trans#error('Invalid register '.g:trans_set_reg.'. check g:trans_set_reg')
     endtry
@@ -156,7 +156,7 @@ fun! trans#init() "{{{
     call trans#default("g:trans_default_api" , 'google'  )
     call trans#default("g:trans_map_trans" , '<leader>tt')
     call trans#default("g:trans_map_to" , '<leader>to')
-    call trans#default("g:trans_set_reg" , 1)
+    call trans#default("g:trans_set_reg" , '"')
     call trans#default("g:trans_set_echo" , 1)
 
     if has("python") "{{{

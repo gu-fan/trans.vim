@@ -8,7 +8,13 @@
 Trans.vim
 =========
 
-**Trans.vim** makes translating in vim easier.
+**Trans.vim** makes translation in vim easier::
+
+    使得翻译在vim容易。
+    vim内で翻訳が容易になります。
+    rend la traduction dans vim facile.
+    macht die Übersetzung in vim einfacher.
+    ...
 
 Installation
 ------------
@@ -124,6 +130,10 @@ if your API need only 'GET' method, then in your vimrc::
         \'query_str': API_QUERY_STR,
         \'parser': API_PARSER_FUNC
         \}
+
+    fun! API_PARSER_FUNC(content)
+        " parse content here.
+    endfun
 
 
 Then you can use it with ``let g:trans_default_api = 'YOUR_API'``,
