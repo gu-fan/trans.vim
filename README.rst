@@ -41,7 +41,7 @@ Usage
 ``:Trans``
     Translate word.
 
-    ``:Trans hello`` will echo ``你好`` and set register ``@"`` to 你好
+    e.g. ':Trans hello' will echo ``你好`` and set register ``@"`` to 你好
 
     ``<leader>tt`` will translate word under cursor or current visual selection.
 
