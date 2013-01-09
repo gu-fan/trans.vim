@@ -1,6 +1,6 @@
 :Title: trans.vim
 :Author: Rykka
-:Version: 0.92
+:Version: 1.0
 :Github: https://github.com/Rykka/trans.vim
 :Update: 2012-12-21
 
@@ -8,38 +8,41 @@
 Trans.vim
 =========
 
-Tries to make translate words and files in vim easier (from/into English).
-
-Includes bing and google translator.
+**Trans.vim** makes translating in vim easier.
 
 Installation
 ------------
 
 Requirment: 
 
-    - Vim compiled with python. 
-    - Or webapi.vim_
+    - Vim compiled with python. (or webapi.vim_)
 
 Install:
 
-    - Vundle::
+    - Vundle_:
 
+      In your Vimrc::
+      
        Bundle 'Rykka/trans.vim'
+       " for no python version
+       " Bundle 'mattn/webapi-vim'
+      
+      Then use ``:BundleInstall`` to install. 
 
 Usage
 -----
 
-``<leader>tt``
-    Translate current word or current visual selection.
-    
-    and you can paste it with ``p``
-
 ``:Trans``
-    Translate word
+    Translate word.
 
-    ``:Trans hello`` will print ``你好``
+    ``:Trans hello`` will echo ``你好`` and set register ``@"`` to 你好
 
-    and you can paste it with ``p``
+    ``<leader>tt`` will translate word under cursor or current visual selection.
+
+``:TransTo``
+    Translate word with input lang code.
+
+    ``<leader>to`` will translate to lang code with word under cursor or current visual selection.
 
 ``:TransPo``
     Translate po file
@@ -59,50 +62,180 @@ Usage
 Options
 -------
 
-``g:trans_map_trans``
-    mapping for translate , default is '<leader>tt'
 
+``g:trans_default_api``
+    Translator engine, 'google', 'bing', 'baidu', 'youdao' are valid. 
+
+    default is 'google'.
+
+    see APIS_ for details.
 ``g:trans_default_lang``
-    your main language, default is 'zh-CN'
+    Your main language, default is 'zh-CN'
+
+``g:trans_map_trans``
+    Mapping for translate , default is '<leader>tt'
+
+``g:trans_map_to``
+    Mapping for translate to lang code, default is '<leader>to'
 
 ``g:trans_set_reg``
-    if is 1, will set the translation to reg ``@"``
-    then you can use ``p`` to paste it
+    The register for you to set. 
 
-    if is 2, will set the translation to reg ``@+``
-    then you can use ``<Ctrl-V>`` to paste it
+    default is '"' means ``@"``.
 
-    if it is 0, no reg will be set
+    you can set it to '+' to clip to ``@+``.
 
-    default is 1
+    or you can set it to '_' to ignore it.
 
-``g:trans_echo``
-    echo the translation
+``g:trans_set_echo``
+    After translation, echo the result.
 
-    if it is 0, will not echo the translation.
+    set it to 0, to disable it.
 
     default is 1
 
-``g:trans_engine``
-    translator engine, 'google' and 'bing' are valid. default is 'google'
-
-``g:trans_google_url``
-    default is 'http://translate.google.com/translate_a/t'
-
-``g:trans_bing_url``
-    default is 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'
-
-``g:trans_bing_appid``
-    default is 'TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*'
-    You can use yours if it's invalid.
-
-``g:trans_header_agent``
-    default is 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5'
 
 
 ``g:trans_has_python``
+    compiled with python or not.
 
-    if you want to disable python usage. set it to 0.
+    set it to 0 to disable using python, thus webapi.vim_ is needed.
 
     default is your python version.
 
+APIs
+----
+
+There are several built-in APIs, and you can define your own API
+to use other translators.
+
+Define your own API,
+if your API need only 'GET' method, then in your vimrc::
+    
+    " init default apis
+    call trans#data#init()
+    
+    " API_QUERY_STR is something like 'text=%TEXT&from=%FROM&to=%TO'
+    " API_PARSER_FUNC is the name of the function to parse the response content
+    " And you can add 'headers' key for specified headers dict
+    let g:trans_api.YOUR_API = {
+        \'url': YOUR_API_URL,
+        \'params': YOUR_API_PARAMS,
+        \'query_str': API_QUERY_STR,
+        \'parser': API_PARSER_FUNC
+        \}
+
+
+Then you can use it with ``let g:trans_default_api = 'YOUR_API'``,
+
+or ``:call trans#request('YOUR_API',text,from,to)`` 
+
+You can see the built-in APIs for references.
+
+Google
+~~~~~~
+
+This is the web API. Which may violate the term of google translator.
+
+No oauth API added as that needs billing.
+
+:: 
+
+    let g:trans_api.google = {
+                \'url': 'http://translate.google.com/translate_a/t',
+                \'params' : {
+                        \"client" : 'firefox-a',
+                        \"ie" : 'UTF-8',
+                        \"oe" : 'UTF-8',
+                        \},
+                \'query_str': 'langpair=%FROM%7C%TO&text=%TEXT',
+                \'parser': 'trans#data#parser_google',
+                \'type': 'get',
+                \'headers': { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5' },
+                \}
+
+Bing
+~~~~
+
+It's using microsoft translator API actually.
+
+Use your key as the built-in key have limit of 2000000 char per month.
+
+Get your key for oauth_obj:
+
+1. create the live account live_
+2. get the client_id (customer ID) at datamarket_ 
+3. get the client_secret at developer_
+4. Active microsoft translator API at translator_data_
+
+::
+
+    let g:trans_api.bing = {'url': 'http://api.microsofttranslator.com/v2/ajax.svc/Translate',
+                \'type': 'oauth',
+                \'oauth_url': 'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13/',
+                \'oauth_obj': {
+                            \'client_id' : '086296d7-e63f-48f3-9ce8-36233efa7b0a',
+                            \'client_secret' : 'YFPq/2G/cz5DnLASQTa1gy8ts3QGuTUBagt1qljkUis=',
+                            \'scope' : 'http://api.microsofttranslator.com',
+                            \'grant_type' : 'client_credentials',
+                            \},
+                \'token_str': 'appId=Bearer%20%TOKEN',
+                \'token_expire': 600,
+                \'token_parser': 'trans#data#parser_t_bing',
+                \'parser': 'trans#data#parser_bing',
+                \'query_str': 'from=%FROM&to=%TO&text=%TEXT',
+                \}
+
+Baidu
+~~~~~
+
+Only 'en' and 'zh-cn',
+
+Create your key at Baidu-Api_
+
+:: 
+    
+    let g:trans_api.baidu = {
+                \'url': 'http://openapi.baidu.com/public/2.0/bmt/translate',
+                \'query_str' : 'q=%TEXT&from=%FROM&to=%TO',
+                \'type' : 'get',
+                \'params' : {'client_id': 'XrPxmIZ2nq4GgKGMxZmGPM5r'},
+                \'parser' : 'trans#data#parser_baidu',
+                \}
+    
+Youdao
+~~~~~~
+
+Only 'en' and 'zh-cn'
+
+Create a new key at youdao-api_, the default key is limit to 1000 per hour.
+
+:: 
+
+    let g:trans_api.youdao = {'url': 'http://fanyi.youdao.com/openapi.do',
+                \'query_str' : 'q=%TEXT',
+                \'type' : 'get',
+                \'params' : {'key': '1050975093',
+                            \'keyfrom': 'trans-vim',
+                            \'doctype': 'json',
+                            \'version': '1.1',
+                            \'type': 'data',
+                            \},
+                \'parser' : 'trans#data#parser_youdao',
+                \}
+    
+
+
+
+.. _webapi.vim: https://github.com/mattn/webapi-vim
+.. _Vundle: https://github.com/gmarik/vundle
+.. _datamarket: https://datamarket.azure.com/account 
+
+.. _live: http://home.live.com/
+
+.. _developer: https://datamarket.azure.com/developer/applications/
+
+.. _translator_data: https://datamarket.azure.com/dataset/bing/microsofttranslator 
+.. _youdao-api: http://fanyi.youdao.com/openapi?path=data-mode
+
+.. _Baidu-Api: http://developer.baidu.com/wiki/index.php?title=%E5%B8%AE%E5%8A%A9%E6%96%87%E6%A1%A3%E9%A6%96%E9%A1%B5/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91/%E7%BF%BB%E8%AF%91API

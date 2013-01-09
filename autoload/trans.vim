@@ -7,36 +7,157 @@
 "=============================================
 let s:cpo_save = &cpo
 set cpo-=C
-
-" Bing
-" http://api.microsofttranslator.com/v2/ajax.svc/Translate?appid=TpnIxwUGK4_mzmb0mI5konkjbIUY46bYxuLlU1RVGONE*&Text=Hello&To=zh-CN
+" Misc "{{{1
+fun! trans#error(msg) "{{{
+    echohl ErrorMsg
+    echo '[Trans]'
+    echohl Normal
+    echon a:msg
+endfun "}}}
+fun! trans#warning(msg) "{{{
+    echohl WarningMsg
+    echo '[Trans]'
+    echohl Normal
+    echon a:msg
+endfun "}}}
 
 let s:path = expand('<sfile>:p:h').'/'
 let s:py_trans = s:path."trans/trans.py"
 function! s:py_core_load() "{{{
-    if exists("s:py_core_loaded") || !g:trans_has_python
-        return
-    endif
-    let s:py_core_loaded=1
     exec s:py."file ".s:py_trans
 endfunction "}}}
 fun! trans#default(option,value) "{{{
     if !exists(a:option)
-        let {a:option} = a:value
+        exe "let" a:option "=" string(a:value)
         return 0
     endif
     return 1
 endfun "}}}
+
+fun! s:get_visual() "{{{
+    let tmp=@@
+    sil! norm! gvy
+    let sel = substitute(@@,'[[:cntrl:]]',' ','g')
+    let @@=tmp
+    return sel
+endfun "}}}
+
+fun! trans#set(text) "{{{
+    try 
+        exe 'let @'.g:trans_set_reg.' = '.string(a:text)
+    catch /^Vim\%((\a\+)\)\=:E18/ 
+        call trans#error('Invalid register '.g:trans_set_reg.'. check g:trans_set_reg')
+    endtry
+    if g:trans_set_echo | redraw | echo a:text | endif
+    return a:text
+endfun "}}}
+" Main "{{{1
+let s:token_time = 0
+let s:token_str = ''
+fun! trans#request(api, text, ...) "{{{
+    let api = get(g:trans_api, a:api)
+    let text = a:text
+    let from = a:0 ? a:1 : ''
+    let to = a:0>1 ? a:2 : ''
+
+    if has_key(api, 'query_str')
+        let query_str = substitute(api.query_str, '%FROM', from, '')
+        let query_str = substitute(query_str, '%TO', to ,'')
+        let query_str = substitute(query_str, '%TEXT', webapi#http#encodeURI(text) ,'')
+    else
+        let query_str = ''
+    endif
+    let params = has_key(api,'params') ? webapi#http#encodeURI(api.params) : ''
+    let headers = has_key(api,'headers') ? api.headers : {}
+
+    if api.type == 'get'
+        let query_url =  api.url . '?' . query_str . (strlen(params) ? '&'.params : '' )
+        let res = trans#get(query_url, headers)
+    elseif api.type == 'post'
+        let query_url = api.url
+        let post_data = query_str . (strlen(params) ? '&'.params : '' )
+        let res = trans#post(query_url, post_data, headers)
+    elseif api.type == 'oauth'
+        let now = localtime()
+        if now - s:token_time >= api.token_expire
+            let s:token_time = now
+            let token_res = trans#post(api.oauth_url, api.oauth_obj)
+            let token = call(api.token_parser,[token_res])
+            let token_str = substitute(api.token_str, '%TOKEN', token,'')
+            let s:token_str = token_str
+        else
+            let token_str = s:token_str
+        endif
+        let query_url =  api.url . '?' . query_str . '&' . token_str . (strlen(params) ? '&'.params : '' )
+        let res = trans#get(query_url, headers)
+    endif
+    let con = res.content
+    let code = has_key(res, 'code') ? res.code : res.header[0]
+    if code =~ '200'
+        return trans#set(call(api.parser, [con]))
+    else
+        call trans#error(code .' with '. query_url)
+    endif
+endfun "}}}
+fun! trans#get(url,...) "{{{
+    let headers = a:0 ? a:1 : {}
+    if g:trans_has_python
+        " XXX the "'" in dict's string will be escaped to "\'" and
+        " will make dict break with E722
+        exec s:py 'c = http_get(veval("a:url"),veval("headers"))'
+        exec s:py 'vcmd("return " + str(c).replace("\\''","''''"))'
+    else
+        return webapi#http#get(a:url,{}, headers)
+    endif
+endfun "}}}
+fun! trans#post(url,data, ...) "{{{
+    let headers = a:0 ? a:1 : {}
+    let data = webapi#http#encodeURI(a:data)
+    if g:trans_has_python
+        exec s:py 'c = http_post(veval("a:url"), veval("data"), veval("headers"))'
+        exec s:py 'vcmd("return " + str(c).replace("\\''","''''"))'
+    else
+        return webapi#http#post(a:url,data,headers)
+    endif
+endfun "}}}
+
+function! trans#v() range "{{{
+    return trans#smart(s:get_visual())
+endfunction "}}}
+function! trans#v_to() range "{{{
+    return trans#to(s:get_visual())
+endfunction "}}}
     
+fun! trans#smart(word) "{{{
+    if a:word =~ '^[[:alnum:][:blank:][:punct:][:cntrl:]]\+$'
+        let from = 'en'
+        let to = g:trans_default_lang
+    else
+        let to = 'en'
+        let from = g:trans_default_lang
+    endif
+    return trans#request(g:trans_default_api, a:word, from, to)
+endfun "}}}
+fun! trans#to(word) "{{{
+    let word = a:word
+    if word =~ '^[[:alnum:][:blank:][:punct:][:cntrl:]]\+$'
+        let from = 'en'
+    else
+        let from = 'auto'
+    endif
+    let to = input('[Trans]Input Lang code(en/zh-cn/ja/...):')
+    if !empty(to)
+        return trans#request(g:trans_default_api, word, from, to)
+    endif
+endfun "}}}
+
 fun! trans#init() "{{{
     call trans#default("g:trans_default_lang" , 'zh-CN'  )
-    call trans#default("g:trans_engine" , 'google'  )
-    call trans#default("g:trans_google_url" , 'http://translate.google.com/translate_a/t')
-    call trans#default("g:trans_bing_appid" , 'Tqs4OB08tznB6SLSjgIq_4GqBdD8oL9LeKlgNss6LuJc*'  )
-    call trans#default("g:trans_bing_url" , 'https://api.microsofttranslator.com/v2/ajax.svc/Translate'  )
-    call trans#default("g:trans_header_agent" , 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5')
+    call trans#default("g:trans_default_api" , 'google'  )
+    call trans#default("g:trans_map_trans" , '<leader>tt')
+    call trans#default("g:trans_map_to" , '<leader>to')
     call trans#default("g:trans_set_reg" , 1)
-    call trans#default("g:trans_echo" , 1)
+    call trans#default("g:trans_set_echo" , 1)
 
     if has("python") "{{{
         call trans#default("g:trans_has_python", 2)
@@ -50,114 +171,11 @@ fun! trans#init() "{{{
         let g:trans_has_python = 0
     endif "}}}
 
+    call trans#data#init()
+
 endfun "}}}
 
-fun! s:set_reg(str) "{{{
-    if g:trans_set_reg == 1
-        let @" = a:str
-    elseif g:trans_set_reg == 2
-        let @+ = a:str
-    endif
-endfun "}}}
-function! trans#google(word, from, to)  "{{{
-    if g:trans_has_python
-        exec s:py 'vcmd("let result_str = ''%s''" % trans_google(veval("a:word"), veval("a:from"),veval("a:to")))'
-        call s:set_reg(result_str)
-        if g:trans_echo | echo result_str | endif
-        return result_str
-    else
-        try
-            let result_obj = webapi#http#get(
-                \g:trans_google_url, {
-                    \"client" : 'firefox-a',
-                    \"langpair" : a:from.'|'.a:to,
-                    \"ie" : 'UTF-8',
-                    \"oe" : 'UTF-8',
-                    \"text" : a:word,
-                \}, {
-                    \'User-Agent': g:trans_header_agent ,
-                \})
-            let po = webapi#json#decode(result_obj.content)
-            let result_str = join(map(po.sentences, 'v:val.trans'), '')
-            call s:set_reg(result_str)
-            if g:trans_echo | echo result_str | endif
-            return result_str
-        catch /^Vim\%((\a\+)\)\=:E117/ 
-            echohl WarningMsg
-            echom "trans.vim: Could not translate as you neither have vim compiled with python nor have webapi.vim installed."
-            echom v:exception
-            echohl Normal
-        endtry
-    endif
-endfunction "}}}
-
-function! trans#bing(word,from,to) "{{{
-    " XXX If we want to use the bing api, we should auth it and get the token,
-    if g:trans_has_python
-        exec s:py 'vcmd("let result_str = ''%s''" % trans_bing(veval("a:word"), veval("a:from"),veval("a:to")))'
-        call s:set_reg(result_str)
-        if g:trans_echo | echo result_str | endif
-        return result_str
-    else
-        try
-            let result_obj = webapi#http#get(
-                \g:trans_bing_url, {
-                    \"Text" : a:word,
-                    \"From" : a:from,
-                    \"appId" : g:trans_bing_appid,
-                    \"To" : a:to 
-                \} ,{
-                    \'User-Agent': g:trans_header_agent ,
-                \})
-            " NOTE: bing return a string like '\uffef"xxx = xxx"'
-            if result_obj.content =~ '"'
-                let result_obj.content = matchstr(result_obj.content,'"\zs.*\ze"')
-            endif
-            if result_obj.content =~ ' = '
-                let result_str = split(result_obj.content,' = ')[1]
-            else
-                let result_str = result_obj.content
-            endif
-            call s:set_reg(result_str)
-            if g:trans_echo | echo result_str | endif
-            return result_str
-        catch /^Vim\%((\a\+)\)\=:E117/ 
-            echohl WarningMsg
-            echom "trans.vim: Could not translate as you neither have vim compiled with python nor have webapi.vim installed."
-            echom v:exception
-            echohl Normal
-        endtry
-    endif
-endfunction "}}}
-
-fun! s:get_visual() "{{{
-    let tmp=@@
-    sil! norm! gvy
-    let sel = @@
-    let @@=tmp
-    let sel = substitute(sel,'[[:cntrl:]]',' ','g')
-    return sel
-endfun "}}}
-function! trans#v() range "{{{
-    return trans#smart(s:get_visual())
-endfunction "}}}
-
-fun! trans#smart(word) "{{{
-    if a:word =~ '^[[:alnum:][:blank:][:punct:][:cntrl:]]\+$'
-        let from = 'en'
-        let to = g:trans_default_lang
-    else
-        let to = 'en'
-        let from = g:trans_default_lang
-    endif
-    if g:trans_engine =='google'
-        return trans#google(a:word,from,to)
-    else
-        return trans#bing(a:word,from,to)
-    endif
-endfun "}}}
-
-" Translate po file {{{1
+" Po {{{1
 " msgid "show all"
 " msgstr "全部显示"
 let s:rex_id = 'msgid "\zs[^"[:space:]].*\ze"'
@@ -179,7 +197,7 @@ fun! trans#msg_repl(row, trans) "{{{
         call setline(a:row, line)
     endif
 endfun "}}}
-fun! trans#trans_po() "{{{
+fun! trans#po() "{{{
     let trans = ''
     for row in range(1,line('$'))
     " for row in range(140,160)
