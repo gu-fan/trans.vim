@@ -27,7 +27,7 @@ Install:
 
     - Vundle_:
 
-      In your Vimrc::
+      In your vimrc::
       
        Bundle 'Rykka/trans.vim'
        " for no python version
@@ -115,8 +115,8 @@ APIs
 There are several built-in APIs, and you can define your own API
 to use other translators.
 
-Define your own API,
-if your API need only 'GET' method, then in your vimrc::
+Define your own API
+  if your API need only 'GET' method, then in your vimrc::
     
     " init default apis
     call trans#data#init()
@@ -133,6 +133,7 @@ if your API need only 'GET' method, then in your vimrc::
 
     fun! API_PARSER_FUNC(content)
         " parse content here.
+        return a:content 
     endfun
 
 
@@ -175,7 +176,7 @@ Get your key for oauth_obj:
 
 1. create the live account live_
 2. get the client_id (customer ID) at datamarket_ 
-3. get the client_secret at developer_
+3. get the client_secret at developer_ (create a app with client_id)
 4. Active microsoft translator API at translator_data_
 
 ::

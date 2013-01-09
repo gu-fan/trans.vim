@@ -210,4 +210,3 @@ fun! trans#po() "{{{
         endif
     endfor
 endfun "}}}
-
