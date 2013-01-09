@@ -106,11 +106,3 @@ Options
 
     default is your python version.
 
-Know Issues
------------
-
-* The google url with webapi.vim_ will return a 400 Bad request. 
-
-
-.. _webapi.vim: https://github.com/mattn/webapi-vim
-
