@@ -25,6 +25,9 @@ let s:path = expand('<sfile>:p:h').'/'
 let s:py_trans = s:path."trans/trans.py"
 function! s:py_core_load() "{{{
     exec s:py."file ".s:py_trans
+    exec s:py." import vim"
+    exec s:py." from vim import command as vcmd"
+    exec s:py." from vim import eval as veval"
 endfunction "}}}
 fun! trans#default(option,value) "{{{
     if !exists(a:option)

@@ -155,17 +155,17 @@ No oauth API added as that needs billing.
 :: 
 
     let g:trans_api.google = {
-                \'url': 'http://translate.google.com/translate_a/t',
-                \'params' : {
-                        \"client" : 'firefox-a',
-                        \"ie" : 'UTF-8',
-                        \"oe" : 'UTF-8',
-                        \},
-                \'query_str': 'langpair=%FROM%7C%TO&text=%TEXT',
-                \'parser': 'trans#data#parser_google',
-                \'type': 'get',
-                \'headers': { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5' },
-                \}
+        \'url': 'http://translate.google.com/translate_a/t',
+        \'params' : {
+                \"client" : 'firefox-a',
+                \"ie" : 'UTF-8',
+                \"oe" : 'UTF-8',
+                \},
+        \'query_str': 'langpair=%FROM%7C%TO&text=%TEXT',
+        \'parser': 'trans#data#parser_google',
+        \'type': 'get',
+        \'headers': { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.15 Safari/536.5' },
+        \}
 
 Bing
 ~~~~
