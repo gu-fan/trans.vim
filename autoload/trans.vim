@@ -163,17 +163,17 @@ fun! trans#init() "{{{
     call trans#default("g:trans_set_echo" , 1)
 
     if !exists("g:trans_has_python") || g:trans_has_python != 0
-    if has("python") "{{{
-        call trans#default("g:trans_has_python", 2)
-        let s:py="py"
-        call s:py_core_load()
-    elseif has("python3")
-        call trans#default("g:trans_has_python", 3)
-        let s:py="py3"
-        call s:py_core_load()
-    else
-        let g:trans_has_python = 0
-    endif "}}}
+        if has("python") "{{{
+            call trans#default("g:trans_has_python", 2)
+            let s:py="py"
+            call s:py_core_load()
+        elseif has("python3")
+            call trans#default("g:trans_has_python", 3)
+            let s:py="py3"
+            call s:py_core_load()
+        else
+            let g:trans_has_python = 0
+        endif "}}}
     endif
 
     call trans#data#init()
