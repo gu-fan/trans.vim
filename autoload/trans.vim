@@ -46,7 +46,7 @@ fun! s:get_visual() "{{{
 endfun "}}}
 
 fun! trans#set(text) "{{{
-    try 
+    try
         exe 'let @'.g:trans_set_reg.' = "'.a:text.'"'
     catch /^Vim\%((\a\+)\)\=:E18/ 
         call trans#error('Invalid register '.g:trans_set_reg.'. check g:trans_set_reg')
@@ -130,7 +130,7 @@ endfunction "}}}
 function! trans#v_to() range "{{{
     return trans#to(s:get_visual())
 endfunction "}}}
-    
+
 fun! trans#smart(word) "{{{
     if a:word =~ '^[[:alnum:][:blank:][:punct:][:cntrl:]]\+$'
         let from = 'en'
@@ -162,17 +162,19 @@ fun! trans#init() "{{{
     call trans#default("g:trans_set_reg" , '"')
     call trans#default("g:trans_set_echo" , 1)
 
-    if has("python") "{{{
-        call trans#default("g:trans_has_python", 2)
-        let s:py="py"
-        call s:py_core_load()
-    elseif has("python3")
-        call trans#default("g:trans_has_python", 3)
-        let s:py="py3"
-        call s:py_core_load()
-    else
-        let g:trans_has_python = 0
-    endif "}}}
+    if !exists("g:trans_has_python") || g:trans_has_python != 0
+        if has("python") "{{{
+            call trans#default("g:trans_has_python", 2)
+            let s:py="py"
+            call s:py_core_load()
+        elseif has("python3")
+            call trans#default("g:trans_has_python", 3)
+            let s:py="py3"
+            call s:py_core_load()
+        else
+            let g:trans_has_python = 0
+        endif "}}}
+    endif
 
     call trans#data#init()
 
