@@ -3,7 +3,7 @@
 "    File: trans.vim
 " Summary: Eaiser translate in vim.
 "  Author: Rykka G.F
-"  Update: 2012-12-19
+"  Update: 2013-03-14
 "=============================================
 let s:cpo_save = &cpo
 set cpo-=C
@@ -161,18 +161,23 @@ fun! trans#init() "{{{
     call trans#default("g:trans_map_to" , '<leader>to')
     call trans#default("g:trans_set_reg" , '"')
     call trans#default("g:trans_set_echo" , 1)
-
+    
     if has("python") "{{{
         call trans#default("g:trans_has_python", 2)
-        let s:py="py"
-        call s:py_core_load()
     elseif has("python3")
         call trans#default("g:trans_has_python", 3)
-        let s:py="py3"
-        call s:py_core_load()
     else
         let g:trans_has_python = 0
     endif "}}}
+
+    if g:trans_has_python
+        if g:trans_has_python == 2
+            let s:py="py"
+        elseif g:trans_has_python == 3
+            let s:py="py3"
+        endif
+        call s:py_core_load()
+    endif
 
     call trans#data#init()
 

@@ -1,8 +1,8 @@
 :Title: trans.vim
 :Author: Rykka
-:Version: 1.0
+:Version: 1.01
 :Github: https://github.com/Rykka/trans.vim
-:Update: 2013-01-10
+:Update: 2013-03-14
 
 =========
 Trans.vim
@@ -237,6 +237,15 @@ Create a new key at youdao-api_, the default key is limit to 1000 per hour.
                 \'parser' : 'trans#data#parser_youdao',
                 \}
     
+
+
+
+ChangeLog
+---------
+
+* 1.01
+
+    - fix #5: performance issue of python loading 
 
 
 
