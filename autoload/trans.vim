@@ -40,17 +40,20 @@ endfun "}}}
 fun! s:get_visual() "{{{
     let tmp=@@
     sil! norm! gvy
-    let sel = substitute(@@,'[[:cntrl:]]',' ','g')
+    " let sel = substitute(@@,'[[:cntrl:]]',' ','g')
+    let sel = @@
     let @@=tmp
     return sel
 endfun "}}}
 
 fun! trans#set(text) "{{{
-    try 
-        exe 'let @'.g:trans_set_reg.' = "'.a:text.'"'
-    catch /^Vim\%((\a\+)\)\=:E18/ 
-        call trans#error('Invalid register '.g:trans_set_reg.'. check g:trans_set_reg')
-    endtry
+    if !empty(g:trans_set_reg)
+        try 
+            exe 'let @'.g:trans_set_reg.' = "'.a:text.'"'
+        catch /^Vim\%((\a\+)\)\=:E18/ 
+            call trans#error('Invalid register '.g:trans_set_reg.'. check g:trans_set_reg')
+        endtry
+    endif
     if g:trans_set_echo | redraw | echo a:text | endif
     return a:text
 endfun "}}}
@@ -81,6 +84,7 @@ fun! trans#request(api, text, ...) "{{{
         let post_data = query_str . (strlen(params) ? '&'.params : '' )
         let res = trans#post(query_url, post_data, headers)
     elseif api.type == 'oauth'
+        " prepare url for auth
         let now = localtime()
         if now - s:token_time >= api.token_expire
             let s:token_time = now
@@ -105,10 +109,21 @@ endfun "}}}
 fun! trans#get(url,...) "{{{
     let headers = a:0 ? a:1 : {}
     if g:trans_has_python
-        " XXX the "'" in dict's string will be escaped to "\'" and
-        " will make dict break with E722
         exec s:py 'c = http_get(veval("a:url"),veval("headers"))'
-        exec s:py 'vcmd("return " + str(c).replace("\\''","''''"))'
+        " FIXED the "'" in dict's string will be escaped 
+        "     to "\'" and will make dict break with E722
+        " Escape \' to ''
+        exec s:py 'c =  str(c).replace("\\''","''''")'
+        " exec s:py 'print c'
+        " FIXED the '"' in string will cause error
+        " Escape "
+        exec s:py 'c =  str(c).replace("\\\"","\"")'
+        " FIXED the '\n'  will not show as newline
+        " Escape \\n to \n
+        exec s:py 'c =  str(c).replace("\\\\n","\\n")'
+        " exec s:py 'print c'
+        exec s:py 'vcmd("let tmp= " + c)'
+        return tmp
     else
         return webapi#http#get(a:url,{}, headers)
     endif
@@ -118,7 +133,11 @@ fun! trans#post(url,data, ...) "{{{
     let data = webapi#http#encodeURI(a:data)
     if g:trans_has_python
         exec s:py 'c = http_post(veval("a:url"), veval("data"), veval("headers"))'
-        exec s:py 'vcmd("return " + str(c).replace("\\''","''''"))'
+        exec s:py 'c =  str(c).replace("\\''","''''")'
+        exec s:py 'c =  str(c).replace("\\\"","\"")'
+        exec s:py 'c =  str(c).replace("\\\\n","\\n")'
+        exec s:py 'vcmd("let tmp= " + c)'
+        return tmp
     else
         return webapi#http#post(a:url,data,headers)
     endif
@@ -129,6 +148,9 @@ function! trans#v() range "{{{
 endfunction "}}}
 function! trans#v_to() range "{{{
     return trans#to(s:get_visual())
+endfunction "}}}
+function! trans#v_between() range "{{{
+    return trans#between(s:get_visual())
 endfunction "}}}
     
 fun! trans#smart(word) "{{{
@@ -153,12 +175,19 @@ fun! trans#to(word) "{{{
         return trans#request(g:trans_default_api, word, from, to)
     endif
 endfun "}}}
+fun! trans#between(word) "{{{
+    let from = input('[Trans]Input From Lang code(en/zh-cn/ja/...):')
+    let to = input('[Trans]Input To Lang code(en/zh-cn/ja/...):')
+    return trans#request(g:trans_default_api, a:word, from, to)
+endfun "}}}
 
 fun! trans#init() "{{{
     call trans#default("g:trans_default_lang" , 'zh-CN'  )
+    call trans#default("g:trans_default_from" , 'en'  )
     call trans#default("g:trans_default_api" , 'google'  )
     call trans#default("g:trans_map_trans" , '<leader>tt')
     call trans#default("g:trans_map_to" , '<leader>to')
+    call trans#default("g:trans_map_between" , '<leader>tb')
     call trans#default("g:trans_set_reg" , '"')
     call trans#default("g:trans_set_echo" , 1)
     
@@ -204,17 +233,4 @@ fun! trans#msg_repl(row, trans) "{{{
         let line = printf('msgstr "%s"', a:trans)
         call setline(a:row, line)
     endif
-endfun "}}}
-fun! trans#po() "{{{
-    let trans = ''
-    for row in range(1,line('$'))
-    " for row in range(140,160)
-        let line = getline(row)
-        if line =~ s:rex_str
-            let trans = trans#msg_trans(row-1)
-            if trans != ''
-                call trans#msg_repl(row, trans)
-            endif
-        endif
-    endfor
 endfun "}}}

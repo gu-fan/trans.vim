@@ -1,8 +1,8 @@
 :Title: trans.vim
 :Author: Rykka
-:Version: 1.01
+:Version: 1.50
 :Github: https://github.com/Rykka/trans.vim
-:Update: 2013-03-14
+:Update: 2013-05-17
 
 =========
 Trans.vim
@@ -39,32 +39,33 @@ Install:
 Usage
 -----
 
-``:Trans``
-    Translate word.
+``:Trans`` ``<leader>tt`` 
+    Translate.
+    word under cursor or current visual selection.
 
     e.g. ':Trans hello' will echo ``你好`` and set register ``@"`` to 你好
 
-    ``<leader>tt`` will translate word under cursor or current visual selection.
-
-``:TransTo``
+``:TransTo`` ``<leader>to`` 
     Translate word with input lang code.
 
-    ``<leader>to`` will translate to lang code with word under cursor or current visual selection.
 
-``:TransPo``
-    Translate po file
+``:TransBetween`` ``<leader>tb``
+    Translate with lang code From and To.
 
-    When in a po buffer, ``:TransPo`` will fill all empty msgstr with translated msgid.
 
-    if the msg is::
+``:TransPo [[FROM],[TO]]``
+    Translate po file.
+    [FROM] and [TO] are lang code and can be ommited.
 
-        msgid "show all"
-        msgstr ""
+    For a buffer of Po, 
+    ``:TransPo`` will fill translate msgid.
 
-    it will be translate to::
+    Following function included:
 
-        msgid "show all"
-        msgstr "全部显示"
+        Plural message translation.
+        Python format string '%(item)s' will be keeped.
+        Multiline string Translation.
+
 
 Options
 -------
@@ -100,7 +101,6 @@ Options
     set it to 0, to disable it.
 
     default is 1
-
 
 
 ``g:trans_has_python``
@@ -243,9 +243,14 @@ Create a new key at youdao-api_, the default key is limit to 1000 per hour.
 ChangeLog
 ---------
 
-* 1.01
+* 1.5
 
-    - fix #5: performance issue of python loading 
+    - Add ``:TransBetween``
+    - Fix the "\"" and "'" and "\n" with python api.
+    - Rewrite TransPo.
+
+      Now work better than auto trans by google translate toolkit.
+
 
 
 
