@@ -1,6 +1,6 @@
 :Title: trans.vim
 :Author: Rykka
-:Version: 1.50
+:Version: 1.51
 :Github: https://github.com/Rykka/trans.vim
 :Update: 2013-05-17
 
@@ -16,6 +16,13 @@ Trans.vim
     Trans.vim rend la traduction dans vim facile.
     Транс.вим чини превод на вим лакше.
     ...
+
+
+What's New
+----------
+
+Add replace option by default.
+
 
 Installation
 ------------
@@ -109,6 +116,12 @@ Options
     set it to 0 to disable using python, thus webapi.vim_ is needed.
 
     default is your python version.
+
+``g:trans_replace``
+
+    replace current words or selection,
+    
+    default is 1.
 
 APIs
 ----

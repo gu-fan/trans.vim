@@ -7,6 +7,7 @@
 "=============================================
 let s:cpo_save = &cpo
 set cpo-=C
+let s:_visual = 0
 " Misc "{{{1
 fun! trans#error(msg) "{{{
     echohl ErrorMsg
@@ -38,6 +39,7 @@ fun! trans#default(option,value) "{{{
 endfun "}}}
 
 fun! s:get_visual() "{{{
+    let s:_visual = 1
     let tmp=@@
     sil! norm! gvy
     " let sel = substitute(@@,'[[:cntrl:]]',' ','g')
@@ -47,6 +49,21 @@ fun! s:get_visual() "{{{
 endfun "}}}
 
 fun! trans#set(text) "{{{
+    if g:trans_replace == 1
+        if empty(a:text) || a:text =~ '^\s*$'
+            call trans#error('Got Empty Translation')
+        else
+            exe 'norm! diw'
+            exe 'let @m = "'.a:text.'"'
+            if s:_visual
+                exe 'norm! gv"mP'
+                let s:_visual = 0
+            else
+                exe 'norm! "mP'
+            endif
+        endif
+        return
+    endif
     if !empty(g:trans_set_reg)
         try 
             exe 'let @'.g:trans_set_reg.' = "'.a:text.'"'
@@ -182,6 +199,7 @@ fun! trans#between(word) "{{{
 endfun "}}}
 
 fun! trans#init() "{{{
+
     call trans#default("g:trans_default_lang" , 'zh-CN'  )
     call trans#default("g:trans_default_from" , 'en'  )
     call trans#default("g:trans_default_api" , 'google'  )
@@ -190,6 +208,7 @@ fun! trans#init() "{{{
     call trans#default("g:trans_map_between" , '<leader>tb')
     call trans#default("g:trans_set_reg" , '"')
     call trans#default("g:trans_set_echo" , 1)
+    call trans#default("g:trans_replace" , 1)
     
     if has("python") "{{{
         call trans#default("g:trans_has_python", 2)
