@@ -1,3 +1,8 @@
+**Deprecated as api getting changed**
+use `translate-shell.vim` instead
+
+:translate-shell.vim: https://github.com/echuraev/translate-shell.vim
+
 :Title: trans.vim
 :Author: Rykka
 :Version: 1.51
